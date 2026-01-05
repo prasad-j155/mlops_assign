@@ -1,5 +1,6 @@
 import mlflow
 import mlflow.sklearn
+import numpy as np
 import pandas as pd
 from fastapi import FastAPI
 from api.schema import HeartDiseaseInput
@@ -7,20 +8,22 @@ from api.schema import HeartDiseaseInput
 # ---------------------------
 # MLflow configuration
 # ---------------------------
-# This points to the DB generated inside Docker by train.py
+import mlflow
+
 mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_registry_uri("sqlite:///mlflow.db")
 
-# This works because train.py assigned the "Production" alias
+#mlflow.set_tracking_uri("sqlite:////mlflow/mlflow.db")
+#mlflow.set_registry_uri("sqlite:////mlflow/mlflow.db")
+
+
+#MODEL_URI = "models:/HeartDiseaseModel/2"
+
 MODEL_URI = "models:/HeartDiseaseModel/Production"
 
-# Load model once at startup (Fails fast if path is wrong)
-try:
-    model = mlflow.sklearn.load_model(MODEL_URI)
-    print("Model loaded successfully from Production stage.")
-except Exception as e:
-    print(f"CRITICAL ERROR: Could not load model. Check if train.py ran successfully during build.\nError: {e}")
-    raise e
+
+# Load model once at startup
+model = mlflow.sklearn.load_model(MODEL_URI)
 
 # ---------------------------
 # FastAPI app
@@ -38,13 +41,7 @@ def health_check():
 @app.post("/predict")
 def predict(data: HeartDiseaseInput):
     # Convert input to DataFrame
-    # Note: Use model_dump() for Pydantic V2. If using V1, use .dict()
-    try:
-        data_dict = data.model_dump()
-    except AttributeError:
-        data_dict = data.dict()
-        
-    input_df = pd.DataFrame([data_dict])
+    input_df = pd.DataFrame([data.dict()])
 
     # Predict
     prediction = model.predict(input_df)[0]

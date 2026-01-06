@@ -10,6 +10,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 from mlflow.tracking import MlflowClient
+import os
+
+# Force MLflow artifacts to be written locally (CI + Docker safe)
+os.environ["MLFLOW_ARTIFACT_URI"] = os.path.abspath("mlruns")
+
 #
 # ---------------------------------------------------------
 # 1. Setup MLflow

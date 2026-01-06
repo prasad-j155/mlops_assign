@@ -12,8 +12,23 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_a
 from mlflow.tracking import MlflowClient
 import os
 
-# Force MLflow artifacts to be written locally (CI + Docker safe)
-os.environ["MLFLOW_ARTIFACT_URI"] = os.path.abspath("mlruns")
+client = MlflowClient()
+
+EXPERIMENT_NAME = "Heart Disease"
+ARTIFACT_PATH = os.path.abspath("mlruns")
+
+# Create experiment if it doesn't exist (CI-safe)
+experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
+
+if experiment is None:
+    experiment_id = client.create_experiment(
+        name=EXPERIMENT_NAME,
+        artifact_location=ARTIFACT_PATH
+    )
+else:
+    experiment_id = experiment.experiment_id
+
+
 
 #
 # ---------------------------------------------------------
@@ -21,7 +36,7 @@ os.environ["MLFLOW_ARTIFACT_URI"] = os.path.abspath("mlruns")
 # ---------------------------------------------------------
 mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_registry_uri("sqlite:///mlflow.db")
-mlflow.set_experiment("Heart Disease")
+mlflow.set_experiment(EXPERIMENT_NAME)
 
 # ---------------------------------------------------------
 # 2. Load and Prepare Data

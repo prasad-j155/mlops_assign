@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import mlflow
 import mlflow.sklearn
+import os
 
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
@@ -27,12 +28,23 @@ mlflow.set_registry_uri("sqlite:///mlflow.db")
 
 MODEL_URI = "models:/HeartDiseaseModel/Production"
 
-try:
-    model = mlflow.sklearn.load_model(MODEL_URI)
-    logger.info("Model loaded successfully from MLflow Production stage.")
-except Exception as e:
-    logger.error(f"CRITICAL: Failed to load model - {e}")
-    raise e
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        model = mlflow.sklearn.load_model(MODEL_URI)
+    return model
+
+
+# Load model ONLY if not running tests/CI
+if os.getenv("SKIP_MODEL_LOAD") != "true":
+    try:
+        model = get_model()
+        print("Model loaded successfully")
+    except Exception as e:
+        print(f"Model loading failed: {e}")
+        raise e
 
 # ---------------------------------------------------------
 # FastAPI App
@@ -90,6 +102,7 @@ def predict(data: HeartDiseaseInput):
         df = pd.DataFrame([input_data])
 
         with REQUEST_LATENCY.time():
+            model = get_model()
             prediction = model.predict(df)[0]
             confidence = model.predict_proba(df).max()
 

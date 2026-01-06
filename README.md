@@ -120,3 +120,6 @@ GET /metrics
 
 ### Screenshots
 Screenshots of MLflow UI, CI/CD pipeline, Docker containers, Kubernetes pods/services, API responses, and metrics are included in the screenshots/ folder
+
+### Demo video link
+https://drive.google.com/file/d/1jgA5vXEBXi3ru5fsX2gO_m0ReMUnMzt_/view?usp=drive_link

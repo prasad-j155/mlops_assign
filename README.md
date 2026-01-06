@@ -1,11 +1,13 @@
 # 🫀 Heart Disease Prediction – End-to-End MLOps Pipeline
 
-Team Members: Group 35
-Prasad Uday Jawadekar	2024AA05482
-Geeth Priya S	        2024AA05618
-Vijaya Rajesh J	      2024AB05086
-Satrasala Nagakishore	2024AB05163
-Rajendar Kumar	      2024AA05173
+Team Members: Group 35 </br>
+Prasad Uday Jawadekar	-         2024AA05482  </br>
+Geeth Priya S	         -        2024AA05618  </br>
+Vijaya Rajesh J	  -    2024AB05086  </br>
+Satrasala Nagakishore -	2024AB05163  </br>
+Rajendar Kumar	 -     2024AA05173   </br>
+
+
 
 
 

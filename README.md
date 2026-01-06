@@ -1,5 +1,14 @@
 # 🫀 Heart Disease Prediction – End-to-End MLOps Pipeline
 
+Team Members: Group 35
+Prasad Uday Jawadekar	2024AA05482
+Geeth Priya S	        2024AA05618
+Vijaya Rajesh J	      2024AB05086
+Satrasala Nagakishore	2024AB05163
+Rajendar Kumar	      2024AA05173
+
+
+
 ## 📌 Project Overview
 This project implements a complete **MLOps workflow** for predicting the risk of heart disease using patient health data.  
 It demonstrates industry-aligned practices including experiment tracking, CI/CD automation, containerization, Kubernetes deployment, and monitoring.

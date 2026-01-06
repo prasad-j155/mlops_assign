@@ -34,8 +34,11 @@ else:
 # ---------------------------------------------------------
 # 1. Setup MLflow
 # ---------------------------------------------------------
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
-mlflow.set_registry_uri("sqlite:///mlflow.db")
+BASE_DIR = os.path.abspath(".")
+MLRUNS_DIR = os.path.join(BASE_DIR, "mlruns")
+
+mlflow.set_tracking_uri(f"file://{MLRUNS_DIR}")
+mlflow.set_registry_uri(f"file://{MLRUNS_DIR}")
 mlflow.set_experiment(EXPERIMENT_NAME)
 
 # ---------------------------------------------------------

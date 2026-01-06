@@ -1,56 +1,111 @@
+import time
+import logging
+import pandas as pd
 import mlflow
 import mlflow.sklearn
-import pandas as pd
+
 from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
+from prometheus_client import Counter, Histogram, generate_latest
+
 from api.schema import HeartDiseaseInput
 
-# ---------------------------
-# MLflow configuration
-# ---------------------------
-# This points to the DB generated inside Docker by train.py
+# ---------------------------------------------------------
+# Logging Configuration
+# ---------------------------------------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------
+# MLflow Configuration (LOCAL)
+# ---------------------------------------------------------
 mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_registry_uri("sqlite:///mlflow.db")
 
-# This works because train.py assigned the "Production" alias
 MODEL_URI = "models:/HeartDiseaseModel/Production"
 
-# Load model once at startup (Fails fast if path is wrong)
 try:
     model = mlflow.sklearn.load_model(MODEL_URI)
-    print("Model loaded successfully from Production stage.")
+    logger.info("Model loaded successfully from MLflow Production stage.")
 except Exception as e:
-    print(f"CRITICAL ERROR: Could not load model. Check if train.py ran successfully during build.\nError: {e}")
+    logger.error(f"CRITICAL: Failed to load model - {e}")
     raise e
 
-# ---------------------------
-# FastAPI app
-# ---------------------------
+# ---------------------------------------------------------
+# FastAPI App
+# ---------------------------------------------------------
 app = FastAPI(
     title="Heart Disease Prediction API",
-    description="Predicts risk of heart disease using MLflow model",
+    description="Predicts risk of heart disease using a trained ML model",
     version="1.0"
 )
 
+# ---------------------------------------------------------
+# Prometheus Metrics
+# ---------------------------------------------------------
+REQUEST_COUNT = Counter(
+    "api_requests_total",
+    "Total number of prediction requests"
+)
+
+REQUEST_LATENCY = Histogram(
+    "api_request_latency_seconds",
+    "Latency of prediction requests"
+)
+
+ERROR_COUNT = Counter(
+    "api_errors_total",
+    "Total number of prediction errors"
+)
+
+# ---------------------------------------------------------
+# Health Check
+# ---------------------------------------------------------
 @app.get("/")
 def health_check():
     return {"status": "healthy"}
 
+# ---------------------------------------------------------
+# Metrics Endpoint
+# ---------------------------------------------------------
+@app.get("/metrics")
+def metrics():
+    return PlainTextResponse(generate_latest())
+
+# ---------------------------------------------------------
+# Prediction Endpoint
+# ---------------------------------------------------------
 @app.post("/predict")
 def predict(data: HeartDiseaseInput):
-    # Convert input to DataFrame
-    # Note: Use model_dump() for Pydantic V2. If using V1, use .dict()
+    REQUEST_COUNT.inc()
+    start_time = time.time()
+
     try:
-        data_dict = data.model_dump()
-    except AttributeError:
-        data_dict = data.dict()
-        
-    input_df = pd.DataFrame([data_dict])
+        input_data = data.dict()
+        logger.info(f"Received request: {input_data}")
 
-    # Predict
-    prediction = model.predict(input_df)[0]
-    probability = model.predict_proba(input_df).max()
+        df = pd.DataFrame([input_data])
 
-    return {
-        "prediction": int(prediction),
-        "confidence": float(probability)
-    }
+        with REQUEST_LATENCY.time():
+            prediction = model.predict(df)[0]
+            confidence = model.predict_proba(df).max()
+
+        latency = round(time.time() - start_time, 4)
+
+        logger.info(
+            f"Prediction={prediction}, Confidence={confidence:.4f}, Latency={latency}s"
+        )
+
+        return {
+            "prediction": int(prediction),
+            "confidence": float(confidence),
+            "latency_seconds": latency
+        }
+
+    except Exception as e:
+        ERROR_COUNT.inc()
+        logger.error(f"Prediction failed: {str(e)}")
+        raise e

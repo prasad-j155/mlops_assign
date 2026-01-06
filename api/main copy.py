@@ -13,11 +13,11 @@ import mlflow
 mlflow.set_tracking_uri("sqlite:///mlflow.db")
 mlflow.set_registry_uri("sqlite:///mlflow.db")
 
-#mlflow.set_tracking_uri("sqlite:////mlflow/mlflow.db")
-#mlflow.set_registry_uri("sqlite:////mlflow/mlflow.db")
+# mlflow.set_tracking_uri("sqlite:////mlflow/mlflow.db")
+# mlflow.set_registry_uri("sqlite:////mlflow/mlflow.db")
 
 
-#MODEL_URI = "models:/HeartDiseaseModel/2"
+# MODEL_URI = "models:/HeartDiseaseModel/2"
 
 MODEL_URI = "models:/HeartDiseaseModel/Production"
 

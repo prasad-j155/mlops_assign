@@ -1,7 +1,26 @@
 from fastapi.testclient import TestClient
 from api.main import app
+import pytest
+import numpy as np
 
 client = TestClient(app)
+
+
+class DummyModel:
+    def predict(self, X):
+        return np.array([1])
+
+    def predict_proba(self, X):
+        return np.array([[0.3, 0.7]])
+
+
+@pytest.fixture(autouse=True)
+def mock_model(monkeypatch):
+    """
+    Automatically mock the ML model for all API tests
+    """
+    from api import main
+    monkeypatch.setattr(main, "get_model", lambda: DummyModel())
 
 
 def test_health_check():

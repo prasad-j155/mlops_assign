@@ -6,3 +6,5 @@ pandas
 numpy
 pydantic
 prometheus-client
+pytest
+httpx
